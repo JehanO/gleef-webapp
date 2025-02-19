@@ -2,20 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Base */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    
+    /* Accent Main Colors (Your brand color - Orange) */
+    --accent-main-900: 14 67% 25%;    /* #6b2915 */
+    --accent-main-800: 15 66% 33%;    /* #8b371c */
+    --accent-main-700: 16 65% 39%;    /* #a64523 */
+    --accent-main-600: 17 64% 46%;    /* #c1532a */
+    --accent-main-500: 17 66% 52%;    /* #d66234 */
+    --accent-main-400: 17 69% 61%;    /* #e07d55 */
+    --accent-main-300: 17 70% 70%;    /* #e89b7c */
+    --accent-main-200: 18 73% 80%;    /* #f1bca6 */
+    --accent-main-100: 18 73% 90%;    /* #f8ded3 */
+
+    /* Gray scale */
+    --gray-900: 210 11% 4%;           /* #08090a */
+    --gray-800: 0 0% 11%;             /* #1c1c1c */
+    --gray-700: 240 9% 25%;           /* #393944 */
+    --gray-600: 240 5% 38%;           /* #5d5d66 */
+    --gray-500: 0 0% 56%;             /* #8f8f8f */
+    --gray-400: 240 3% 69%;           /* #aeaeb2 */
+    --gray-300: 240 2% 91%;           /* #e8e8e9 */
+    --gray-200: 0 0% 97%;             /* #f7f7f7 */
+    --gray-100: 0 0% 98%;             /* #fafafa */
+
+    /* Component specific */
+    --primary: 17 66% 52%;            /* Using accent-main-500 as primary */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: var(--accent-main-500);
+    
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: var(--gray-900);
+    --foreground: var(--gray-100);
+    
+    --primary: 17 66% 52%;            /* Same accent-main-500 */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --card: var(--gray-900);
+    --card-foreground: var(--gray-100);
+    
+    --popover: var(--gray-900);
+    --popover-foreground: var(--gray-100);
+    
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: var(--accent-main-500);
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

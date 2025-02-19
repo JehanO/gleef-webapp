@@ -1,0 +1,83 @@
+{
+    "auth": {
+        "signup": {
+            "title": "Créer un compte",
+            "social":{
+                "title": "Créez votre compte facilement en utilisant",
+                "google": "Google",
+                "github": "Github"
+            },
+            "credentials":{
+                "title": "Ou continuer avec votre email",
+                "firstname": {
+                    "label": "Prénom",
+                    "placeholder": "Jean",
+                    "error":{
+                        "required":"Le prénom est requis"
+                    }
+                },
+                "email": {
+                    "label": "Email",
+                    "placeholder": "jean@entreprise.com",
+                    "error": {
+                        "required": "L'email est requis",
+                        "invalid": "Veuillez entrer une adresse email valide",
+                        "company": "Veuillez utiliser votre email professionnel"
+                    }
+                },
+                "password": {
+                    "label": "Mot de passe",
+                    "error": {
+                        "required": "Le mot de passe est requis",
+                        "length": "Le mot de passe doit contenir au moins 8 caractères"
+                    }
+                },
+                "confirmPassword": {
+                    "label": "Confirmer le mot de passe",
+                    "error": "Les mots de passe ne correspondent pas"
+                },
+                "submit":{
+                    "button": "S'inscrire",
+                    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+                    "signIn": "Se connecter",
+                    "error":{
+                        "error":"Une erreur est survenue lors de l'inscription"
+                    }
+                }
+            }
+        },
+        "login": {
+            "title": "Ravi de vous revoir",
+            "subtitle": "Continuer avec les réseaux sociaux",
+            "social": {
+                "google": "Google",
+                "github": "GitHub",
+                "title": "Continuer avec"
+            },
+            "divider": "Ou continuer avec un email",
+            "form": {
+                "email": {
+                    "label": "E-mail",
+                    "placeholder": "nom@entreprise.com",
+                    "error": {
+                        "required": "L'email est requis",
+                        "invalid": "Veuillez entrer un email valide"
+                    }
+                },
+                "password": {
+                    "label": "Mot de passe",
+                    "error": {
+                        "required": "Le mot de passe est requis",
+                        "invalid": "Identifiants invalides"
+                    }
+                }
+            },
+            "submit": "Se connecter",
+            "forgotPassword": "Mot de passe oublié ?",
+            "signUp": {
+                "prompt": "Vous n'avez pas de compte ?",
+                "link": "Inscrivez-vous"
+            }
+        }
+    }
+ }

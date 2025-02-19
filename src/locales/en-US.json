@@ -1,0 +1,83 @@
+{
+    "auth": {
+        "signup": {
+            "title": "Create an account",
+            "social":{
+                "title": "Sign up with socials",
+                "google": "Google",
+                "github": "Github"
+            },
+            "credentials":{
+                "title": "Or continue with email",
+                "firstname": {
+                "label": "Firstname",
+                "placeholder": "John",
+                "error":{
+                    "required":"Firstname is required"
+                }
+                },
+                "email": {
+                "label": "Email",
+                "placeholder": "john@company.com",
+                "error": {
+                    "required": "Email is required",
+                    "invalid": "Please enter a valid email address",
+                    "company": "Please use your company email address"
+                }
+                },
+                "password": {
+                "label": "Password",
+                "error": {
+                    "required": "Password is required",
+                    "length": "Password must be at least 8 characters"
+                }
+                },
+                "confirmPassword": {
+                "label": "Confirm Password",
+                "error": "Passwords do not match"
+                },
+                "submit":{
+                    "button": "Create account",
+                    "alreadyHaveAccount": "Already have an account?",
+                    "signIn": "Sign in",
+                    "error":{
+                        "error":"An error occurred during sign up"
+                    }
+                }
+            }
+        },
+        "login": {
+        "title": "Welcome back",
+        "subtitle": "Continue with socials",
+        "social": {
+            "google": "Google",
+            "github": "GitHub",
+            "title": "Continue with"
+        },
+        "divider": "Or continue with email",
+        "form": {
+            "email": {
+                "label": "Email",
+                "placeholder": "name@company.com", 
+                "error": {
+                    "required": "Email is required",
+                    "invalid": "Please enter a valid email"
+                }
+            },
+            "password": {
+                "label": "Password",
+                "error": {
+                    "required": "Password is required",
+                    "invalid": "Invalid credentials"
+                }
+            }
+        },
+        "submit": "Sign in",
+        "forgotPassword": "Forgot password?",
+        "signUp": {
+            "prompt": "Don't have an account?",
+            "link": "Sign up"
+        }
+        }
+    }
+}
