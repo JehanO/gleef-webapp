@@ -1,8 +1,8 @@
 // src/hooks/useTranslation.ts
 "use client"
 
-import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState, useCallback } from 'react'
 import enUS from '@/locales/en-US.json'
 import frFR from '@/locales/fr-FR.json'
 
@@ -11,6 +11,7 @@ const translations = {
   'fr-FR': frFR,
 } as const
 
+type TranslationLocale = keyof typeof translations
 type RecursiveKeyOf<TObj extends object> = {
   [TKey in keyof TObj & (string | number)]: TObj[TKey] extends object
     ? `${TKey}` | `${TKey}.${RecursiveKeyOf<TObj[TKey]>}`
@@ -21,18 +22,18 @@ type TranslationKeys = RecursiveKeyOf<typeof enUS>
 
 export function useTranslation() {
   const params = useParams()
-  const [currentLocale, setCurrentLocale] = useState(params?.locale as string || 'en-US')
+  const router = useRouter()
+  const [currentLocale, setCurrentLocale] = useState<TranslationLocale>(
+    (params?.locale as TranslationLocale) || 'en-US'
+  )
 
   useEffect(() => {
-    // Écoute les changements de locale dans localStorage
-    const storedLocale = localStorage.getItem('userLocale')
-    if (storedLocale) {
-      setCurrentLocale(storedLocale)
-    }
+    const storedLocale = localStorage.getItem('userLocale') as TranslationLocale
+    if (storedLocale) setCurrentLocale(storedLocale)
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'userLocale' && e.newValue) {
-        setCurrentLocale(e.newValue)
+        setCurrentLocale(e.newValue as TranslationLocale)
       }
     }
 
@@ -40,19 +41,23 @@ export function useTranslation() {
     return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
   
+  const changeLocale = useCallback((newLocale: TranslationLocale) => {
+    setCurrentLocale(newLocale)
+    localStorage.setItem('userLocale', newLocale)
+    router.refresh()
+  }, [router])
+  
   const t = (key: TranslationKeys): string => {
     const keys = key.split('.')
-    let current: any = translations[currentLocale as keyof typeof translations]
+    let current: any = translations[currentLocale]
     
     for (const k of keys) {
-      if (current?.[k] === undefined) {
-        return key
-      }
+      if (current?.[k] === undefined) return key
       current = current[k]
     }
     
     return current as string
   }
 
-  return { t, locale: currentLocale }
+  return { t, locale: currentLocale, changeLocale }
 }
