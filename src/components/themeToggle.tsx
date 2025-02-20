@@ -1,9 +1,8 @@
 // components/theme-toggle.tsx
 "use client"
-import { LanguageSwitcher } from "@/components/ui/language-selector"
 import { Icons } from "@/components/ui/icons"
 import { Button } from "@/components/ui/button"
-import { useTheme } from "@/components/theme-provider"
+import { useTheme } from "@/components/themeProvider"
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()

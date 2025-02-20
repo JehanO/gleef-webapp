@@ -1,8 +1,7 @@
-// components/ui/top-right-actions.tsx
 "use client"
 
-import { ThemeToggle } from "@/components/theme-toggle"
-import { LanguageSwitcher } from "@/components/ui/language-selector"
+import { ThemeToggle } from "@/components/themeToggle"
+import { LanguageSwitcher } from "@/i18n/languageSwitcher"
 
 interface TopRightActionsProps {
   className?: string

@@ -1,5 +1,5 @@
 import { Pattern } from "@/components/auth/pattern"
-import { TopRightActions } from "@/components/ui/header-top-right-actions"
+import { TopRightActions } from "@/components/ui/headerToggle"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

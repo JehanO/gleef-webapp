@@ -1,6 +1,6 @@
 "use client"
 
-import { TopRightActions } from "@/components/ui/header-top-right-actions"
+import { TopRightActions } from "@/components/ui/headerToggle"
 
 interface HeaderProps {
   className?: string
