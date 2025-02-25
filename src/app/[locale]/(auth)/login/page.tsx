@@ -1,63 +1,117 @@
 "use client"
 
-import { redirect } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from "react"
 import { useTranslation } from '@/hooks/useTranslation'
 import { Icons } from "@/components/ui/icons"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import AuthLayout from "@/components/auth/layout"
-import { createClient } from '@/lib/supabase/client'
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
     const { t } = useTranslation()
+    const router = useRouter()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [errors, setErrors] = useState<{email?: string; password?: string}>({})
     const [isLoading, setIsLoading] = useState(false)
+    const [checkingSession, setCheckingSession] = useState(true)
 
-    const validateEmail = (email: string) => {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return re.test(email)
-    }
+    const supabase = createClientComponentClient()
+    
+    // Check if user is already logged in
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data } = await supabase.auth.getSession()
+            if (data.session) {
+                router.push('/')
+            } else {
+                setCheckingSession(false)
+            }
+        }
+        
+        checkSession()
+    }, [router, supabase])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setErrors({})
         setIsLoading(true)
 
-        // Validation basique
-        if (!email) {
-            setErrors(e => ({...e, email: t('auth.login.form.email.error.required')}))
-        } else if (!validateEmail(email)) {
-            console.log("erreur catched")
-            setErrors(e => ({...e, email: t('auth.login.form.email.error.invalid')}))
-        }
-
-        if (!password) {
-            setErrors(e => ({...e, password: t('auth.login.form.password.error.required')}))
-        }
-
-        if (!email || !password || !validateEmail(email)) {
+        // Basic validation
+        if (!email) setErrors(e => ({...e, email: t('auth.login.form.email.error.required')}))
+        if (!password) setErrors(e => ({...e, password: t('auth.login.form.password.error.required')}))
+        if (!email || !password) {
             setIsLoading(false)
             return
         }
 
         try {
-            const supabase = createClient()
-            const { error } = await supabase.auth.signInWithPassword({ email, password })
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            })
+
             if (error) {
-                setErrors({email: t('auth.login.form.password.error.invalid')})
-            } else {
-                console.log("Login successful")
-                redirect('/')
+                throw error
+            }
+
+            if (data?.session) {
+                router.push('/')
+                router.refresh()
             }
         } catch (error) {
+            console.error("Login error:", error)
             setErrors({email: t('auth.login.form.password.error.invalid')})
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const handleGoogleSignIn = async () => {
+        setIsLoading(true)
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/callback`
+                }
+            })
+            if (error) throw error
+        } catch (error) {
+            console.error("Google login error:", error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleGithubSignIn = async () => {
+        setIsLoading(true)
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'github',
+                options: {
+                    redirectTo: `${window.location.origin}/callback`
+                }
+            })
+            if (error) throw error
+        } catch (error) {
+            console.error("GitHub login error:", error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    if (checkingSession) {
+        return (
+            <AuthLayout>
+                <div className="flex justify-center items-center min-h-[300px]">
+                    <Icons.spinner className="h-8 w-8 animate-spin" />
+                </div>
+            </AuthLayout>
+        )
     }
 
     return (
@@ -69,11 +123,21 @@ export default function LoginPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" className="w-full" disabled={isLoading}>
+            <Button 
+                variant="outline" 
+                className="w-full" 
+                disabled={isLoading}
+                onClick={handleGoogleSignIn}
+            >
                 <Icons.google className="mr-2 h-4 w-4" />
                 {t('auth.login.social.google')}
             </Button>
-            <Button variant="outline" className="w-full" disabled={isLoading}>
+            <Button 
+                variant="outline" 
+                className="w-full" 
+                disabled={isLoading}
+                onClick={handleGithubSignIn}
+            >
                 <Icons.gitHub className="mr-2 h-4 w-4" />
                 {t('auth.login.social.github')}
             </Button>
@@ -131,7 +195,7 @@ export default function LoginPage() {
             </Link>
             <p className="text-sm text-muted-foreground">
                 {t('auth.login.signUp.prompt')}{" "}
-                <Link href="/auth/signup" className="text-primary hover:underline">
+                <Link href="/signup" className="text-primary hover:underline">
                 {t('auth.login.signUp.link')}
                 </Link>
             </p>

@@ -1,16 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Icons } from "@/components/ui/icons"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import AuthLayout from "@/components/auth/layout"
 import { isValidEmail, isCompanyEmail } from '@/lib/email-validation'
 import { useTranslation } from '@/hooks/useTranslation'
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function SignUpPage() {
     const { t } = useTranslation()
+    const router = useRouter()
     const [formData, setFormData] = useState({
         firstname: "",
         email: "",
@@ -22,63 +25,148 @@ export default function SignUpPage() {
         email?: string
         password?: string
         confirmPassword?: string
+        general?: string
     }>({})
     const [isLoading, setIsLoading] = useState(false)
+    const [checkingSession, setCheckingSession] = useState(true)
 
-    const isValidEmail = (email: string): boolean => {
+    const supabase = createClientComponentClient()
+    
+    // Check if user is already logged in
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data } = await supabase.auth.getSession()
+            if (data.session) {
+                router.push('/')
+            } else {
+                setCheckingSession(false)
+            }
+        }
+        
+        checkSession()
+    }, [router, supabase])
+
+    const validateEmail = (email: string): boolean => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         return emailRegex.test(email)
     }
 
+    const checkCompanyEmail = async (email: string): Promise<boolean> => {
+        // This is a simple client-side implementation
+        // In production, you might want to check this server-side
+        return isCompanyEmail(email)
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrors({})
-    setIsLoading(true)
+        e.preventDefault()
+        setErrors({})
+        setIsLoading(true)
 
-    try {
-        // Validation
-        const newErrors: typeof errors = {}
-        if (!formData.firstname) newErrors.firstname = t('auth.signup.credentials.firstname.error.required')
-        
-        if (!formData.email) {
-            newErrors.email = t('auth.signup.credentials.email.error.required')
-        } else if (!isValidEmail(formData.email)) {
-            newErrors.email = t('auth.signup.credentials.email.error.invalid')
-        } else {
-            const isCompany = await isCompanyEmail(formData.email)
-        if (!isCompany) {
-            newErrors.email = t('auth.signup.credentials.email.error.company')
-        }
-        }
+        try {
+            // Validation
+            const newErrors: typeof errors = {}
+            if (!formData.firstname) newErrors.firstname = t('auth.signup.credentials.firstname.error.required')
+            
+            if (!formData.email) {
+                newErrors.email = t('auth.signup.credentials.email.error.required')
+            } else if (!validateEmail(formData.email)) {
+                newErrors.email = t('auth.signup.credentials.email.error.invalid')
+            } else {
+                const isCompany = await checkCompanyEmail(formData.email)
+                if (!isCompany) {
+                    newErrors.email = t('auth.signup.credentials.email.error.company')
+                }
+            }
 
-        if (!formData.password) {
-            newErrors.password = t('auth.signup.credentials.password.error.required')
-        } else if (formData.password.length < 8) {
-            newErrors.password = t('auth.signup.credentials.password.error.length')
-        }
+            if (!formData.password) {
+                newErrors.password = t('auth.signup.credentials.password.error.required')
+            } else if (formData.password.length < 8) {
+                newErrors.password = t('auth.signup.credentials.password.error.length')
+            }
 
-        if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = t('auth.signup.credentials.confirmPassword.error')
-        }
+            if (formData.password !== formData.confirmPassword) {
+                newErrors.confirmPassword = t('auth.signup.credentials.confirmPassword.error')
+            }
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors)
-            return
-        }
+            if (Object.keys(newErrors).length > 0) {
+                setErrors(newErrors)
+                setIsLoading(false)
+                return
+            }
 
-        // TODO: Supabase auth
-        console.log("Sign up:", formData)
-    } catch (error) {
-        setErrors({ email: t('auth.signup.credentials.submit.error.error') })
-    } finally {
-        setIsLoading(false)
+            // Create user with Supabase
+            const { data, error } = await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
+                options: {
+                    data: {
+                        firstname: formData.firstname
+                    }
+                }
+            })
+
+            if (error) throw error
+
+            // Redirect to confirmation page or login
+            router.push('/login')
+            
+        } catch (error) {
+            console.error("Registration error:", error)
+            setErrors({ 
+                general: t('auth.signup.credentials.submit.error.error')
+            })
+        } finally {
+            setIsLoading(false)
+        }
     }
+
+    const handleGoogleSignUp = async () => {
+        setIsLoading(true)
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/callback`
+                }
+            })
+            if (error) throw error
+        } catch (error) {
+            console.error("Google signup error:", error)
+        } finally {
+            setIsLoading(false)
+        }
     }
 
+    const handleGithubSignUp = async () => {
+        setIsLoading(true)
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'github',
+                options: {
+                    redirectTo: `${window.location.origin}/callback`
+                }
+            })
+            if (error) throw error
+        } catch (error) {
+            console.error("GitHub signup error:", error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
         setFormData(prev => ({ ...prev, [name]: value }))
+    }
+
+    if (checkingSession) {
+        return (
+            <AuthLayout>
+                <div className="flex justify-center items-center min-h-[300px]">
+                    <Icons.spinner className="h-8 w-8 animate-spin" />
+                </div>
+            </AuthLayout>
+        )
     }
 
     return (
@@ -90,11 +178,21 @@ export default function SignUpPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="w-full" disabled={isLoading}>
+                <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    disabled={isLoading}
+                    onClick={handleGoogleSignUp}
+                >
                     <Icons.google className="mr-2 h-4 w-4" />
                     {t('auth.signup.social.google')}
                 </Button>
-                <Button variant="outline" className="w-full" disabled={isLoading}>
+                <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    disabled={isLoading}
+                    onClick={handleGithubSignUp}
+                >
                     <Icons.gitHub className="mr-2 h-4 w-4" />
                     {t('auth.signup.social.github')}
                 </Button>
@@ -108,6 +206,12 @@ export default function SignUpPage() {
                     <span className="bg-card px-2 text-muted-foreground">{t('auth.signup.credentials.title')}</span>
                 </div>
             </div>
+
+            {errors.general && (
+                <div className="bg-destructive/10 p-3 rounded-md">
+                    <p className="text-sm text-destructive">{errors.general}</p>
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -178,7 +282,7 @@ export default function SignUpPage() {
 
             <p className="text-sm text-center text-muted-foreground">
             {t('auth.signup.credentials.submit.alreadyHaveAccount')}{" "}
-            <Link href="/auth/login" className="text-primary hover:underline">
+            <Link href="/login" className="text-primary hover:underline">
             {t('auth.signup.credentials.submit.signIn')}
             </Link>
             </p>
