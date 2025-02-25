@@ -1,3 +1,4 @@
+// src/app/[locale]/(auth)/login/page.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -15,12 +16,12 @@ export default function LoginPage() {
     const router = useRouter()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [errors, setErrors] = useState<{email?: string; password?: string}>({})
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
     const [isLoading, setIsLoading] = useState(false)
     const [checkingSession, setCheckingSession] = useState(true)
 
     const supabase = createClientComponentClient()
-    
+
     // Check if user is already logged in
     useEffect(() => {
         const checkSession = async () => {
@@ -31,19 +32,38 @@ export default function LoginPage() {
                 setCheckingSession(false)
             }
         }
-        
+
         checkSession()
     }, [router, supabase])
+
+    // Email validation function
+    const validateEmail = (email: string): boolean => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        return emailRegex.test(email)
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setErrors({})
         setIsLoading(true)
 
-        // Basic validation
-        if (!email) setErrors(e => ({...e, email: t('auth.login.form.email.error.required')}))
-        if (!password) setErrors(e => ({...e, password: t('auth.login.form.password.error.required')}))
-        if (!email || !password) {
+        // Enhanced validation
+        const validationErrors: { email?: string; password?: string } = {}
+
+        // Email validation
+        if (!email) {
+            validationErrors.email = t('auth.login.form.email.error.required')
+        } else if (!validateEmail(email)) {
+            validationErrors.email = t('auth.login.form.email.error.invalid')
+        }
+
+        // Password validation
+        if (!password) {
+            validationErrors.password = t('auth.login.form.password.error.required')
+        }
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors)
             setIsLoading(false)
             return
         }
@@ -55,6 +75,11 @@ export default function LoginPage() {
             })
 
             if (error) {
+                if (error.message.includes('Invalid login credentials')) {
+                    setErrors({ password: t('auth.login.form.password.error.invalid') })
+                } else {
+                    setErrors({ email: error.message })
+                }
                 throw error
             }
 
@@ -64,12 +89,13 @@ export default function LoginPage() {
             }
         } catch (error) {
             console.error("Login error:", error)
-            setErrors({email: t('auth.login.form.password.error.invalid')})
+            // Error is already set above
         } finally {
             setIsLoading(false)
         }
     }
 
+    // src/app/[locale]/(auth)/login/page.tsx - update OAuth functions
     const handleGoogleSignIn = async () => {
         setIsLoading(true)
         try {
@@ -116,91 +142,91 @@ export default function LoginPage() {
 
     return (
         <AuthLayout>
-        <div className="w-full space-y-6 bg-card p-8 rounded-lg border shadow-sm">
-            <div className="space-y-2">
-            <h1 className="text-2xl font-bold">{t('auth.login.title')}</h1>
-            <p className="text-muted-foreground">{t('auth.login.subtitle')}</p>
-            </div>
+            <div className="w-full space-y-6 bg-card p-8 rounded-lg border shadow-sm">
+                <div className="space-y-2">
+                    <h1 className="text-2xl font-bold">{t('auth.login.title')}</h1>
+                    <p className="text-muted-foreground">{t('auth.login.subtitle')}</p>
+                </div>
 
-            <div className="grid grid-cols-2 gap-3">
-            <Button 
-                variant="outline" 
-                className="w-full" 
-                disabled={isLoading}
-                onClick={handleGoogleSignIn}
-            >
-                <Icons.google className="mr-2 h-4 w-4" />
-                {t('auth.login.social.google')}
-            </Button>
-            <Button 
-                variant="outline" 
-                className="w-full" 
-                disabled={isLoading}
-                onClick={handleGithubSignIn}
-            >
-                <Icons.gitHub className="mr-2 h-4 w-4" />
-                {t('auth.login.social.github')}
-            </Button>
-            </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={isLoading}
+                        onClick={handleGoogleSignIn}
+                    >
+                        <Icons.google className="mr-2 h-4 w-4" />
+                        {t('auth.login.social.google')}
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={isLoading}
+                        onClick={handleGithubSignIn}
+                    >
+                        <Icons.gitHub className="mr-2 h-4 w-4" />
+                        {t('auth.login.social.github')}
+                    </Button>
+                </div>
 
-            <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">{t('auth.login.divider')}</span>
-            </div>
-            </div>
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-card px-2 text-muted-foreground">{t('auth.login.divider')}</span>
+                    </div>
+                </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-                <label className="text-sm font-medium">{t('auth.login.form.email.label')}</label>
-                <Input
-                type="email"
-                placeholder={t('auth.login.form.email.placeholder')}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={errors.email ? "border-destructive" : ""}
-                />
-                {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
-                )}
-            </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">{t('auth.login.form.email.label')}</label>
+                        <Input
+                            type="email"
+                            placeholder={t('auth.login.form.email.placeholder')}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className={errors.email ? "border-destructive" : ""}
+                        />
+                        {errors.email && (
+                            <p className="text-sm text-destructive">{errors.email}</p>
+                        )}
+                    </div>
 
-            <div className="space-y-2">
-                <label className="text-sm font-medium">{t('auth.login.form.password.label')}</label>
-                <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={errors.password ? "border-destructive" : ""}
-                />
-                {errors.password && (
-                <p className="text-sm text-destructive">{errors.password}</p>
-                )}
-            </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">{t('auth.login.form.password.label')}</label>
+                        <Input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className={errors.password ? "border-destructive" : ""}
+                        />
+                        {errors.password && (
+                            <p className="text-sm text-destructive">{errors.password}</p>
+                        )}
+                    </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" /> : 
-                null
-                }
-                {t('auth.login.submit')}
-            </Button>
-            </form>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ?
+                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" /> :
+                            null
+                        }
+                        {t('auth.login.submit')}
+                    </Button>
+                </form>
 
-            <div className="text-center space-y-2">
-            <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
-                {t('auth.login.forgotPassword')}
-            </Link>
-            <p className="text-sm text-muted-foreground">
-                {t('auth.login.signUp.prompt')}{" "}
-                <Link href="/signup" className="text-primary hover:underline">
-                {t('auth.login.signUp.link')}
-                </Link>
-            </p>
+                <div className="text-center space-y-2">
+                    <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
+                        {t('auth.login.forgotPassword')}
+                    </Link>
+                    <p className="text-sm text-muted-foreground">
+                        {t('auth.login.signUp.prompt')}{" "}
+                        <Link href="/signup" className="text-primary hover:underline">
+                            {t('auth.login.signUp.link')}
+                        </Link>
+                    </p>
+                </div>
             </div>
-        </div>
         </AuthLayout>
     )
 }

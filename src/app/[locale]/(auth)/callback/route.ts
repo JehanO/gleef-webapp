@@ -1,3 +1,4 @@
+// src/app/[locale]/(auth)/callback/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
@@ -11,6 +12,6 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  // Redirect to a default or specified route
-  return NextResponse.redirect(`${origin}/dashboard`);
+  // Redirect to dashboard after successful auth
+  return NextResponse.redirect(`${origin}/`);
 }
