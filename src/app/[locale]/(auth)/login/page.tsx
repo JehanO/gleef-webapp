@@ -1,13 +1,14 @@
-// app/auth/login/page.tsx
 "use client"
 
-import { useState } from "react"
+import { redirect } from 'next/navigation'
+import { useState } from 'react'
 import { useTranslation } from '@/hooks/useTranslation'
 import { Icons } from "@/components/ui/icons"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import AuthLayout from "@/components/auth/layout"
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
     const { t } = useTranslation()
@@ -16,26 +17,46 @@ export default function LoginPage() {
     const [errors, setErrors] = useState<{email?: string; password?: string}>({})
     const [isLoading, setIsLoading] = useState(false)
 
+    const validateEmail = (email: string) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        return re.test(email)
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setErrors({})
         setIsLoading(true)
 
         // Validation basique
-        if (!email) setErrors(e => ({...e, email: t('auth.login.form.email.error.required')}))
-        if (!password) setErrors(e => ({...e, password: t('auth.login.form.password.error.required')}))
-        if (!email || !password) {
-        setIsLoading(false)
-        return
+        if (!email) {
+            setErrors(e => ({...e, email: t('auth.login.form.email.error.required')}))
+        } else if (!validateEmail(email)) {
+            console.log("erreur catched")
+            setErrors(e => ({...e, email: t('auth.login.form.email.error.invalid')}))
+        }
+
+        if (!password) {
+            setErrors(e => ({...e, password: t('auth.login.form.password.error.required')}))
+        }
+
+        if (!email || !password || !validateEmail(email)) {
+            setIsLoading(false)
+            return
         }
 
         try {
-        // TODO: Supabase auth
-        console.log("Login:", {email, password})
+            const supabase = createClient()
+            const { error } = await supabase.auth.signInWithPassword({ email, password })
+            if (error) {
+                setErrors({email: t('auth.login.form.password.error.invalid')})
+            } else {
+                console.log("Login successful")
+                redirect('/')
+            }
         } catch (error) {
-        setErrors({email: t('auth.login.form.password.error.invalid')})
+            setErrors({email: t('auth.login.form.password.error.invalid')})
         } finally {
-        setIsLoading(false)
+            setIsLoading(false)
         }
     }
 

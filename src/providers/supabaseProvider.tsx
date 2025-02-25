@@ -3,7 +3,7 @@
 import { User } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
-import { SupabaseContext } from '@/lib/supabase/context'
+import { SupabaseContext } from '@/lib/supabase/middleware'
 
 export default function SupabaseProvider({ 
   children 
