@@ -1,8 +1,22 @@
+// src/lib/supabase/server.ts
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export const createClient = async () => {
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
+
+  // Custom cookie getter to handle potential parsing errors
+  const safeCookieGet = () => {
+    try {
+      return cookieStore.getAll().map(cookie => ({
+        name: cookie.name,
+        value: cookie.value
+      }));
+    } catch (error) {
+      console.warn("Error parsing cookies:", error);
+      return [];
+    }
+  };
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,7 +24,7 @@ export const createClient = async () => {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          return safeCookieGet();
         },
         setAll(cookiesToSet) {
           try {
@@ -18,9 +32,10 @@ export const createClient = async () => {
               cookieStore.set(name, value, options);
             });
           } catch (error) {
+            console.warn("Error setting cookies:", error);
           }
         },
       },
-    },
+    }
   );
 };

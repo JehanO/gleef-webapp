@@ -24,7 +24,6 @@ export async function middleware(request: NextRequest) {
     localePrefix: 'always'
   });
 
-  // Always allow callback route for OAuth
   if (pathnameWithoutLocale === '/callback') {
     return intlMiddleware(request);
   }

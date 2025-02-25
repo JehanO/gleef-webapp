@@ -95,10 +95,10 @@ export default function LoginPage() {
         }
     }
 
-    // src/app/[locale]/(auth)/login/page.tsx - update OAuth functions
     const handleGoogleSignIn = async () => {
         setIsLoading(true)
         try {
+            console.log("redirecting to callback" + `${window.location.origin}/callback`)
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
